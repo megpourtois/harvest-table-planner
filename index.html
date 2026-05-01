@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harvest Table Planner</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Recipe Library + Planner + Grocery Flow</p>
+        <h1>Harvest Table Planner</h1>
+        <p class="hero-copy">
+          Build your own recipe categories, map out two weeks of meals, and let your grocery list assemble itself.
+        </p>
+      </div>
+      <div class="hero-badge">
+        <span>Browser-based</span>
+        <span>Works on desktop + iPhone</span>
+        <span>Private data in your browser</span>
+      </div>
+    </header>
+
+    <nav class="tab-nav" aria-label="Main navigation">
+      <button class="tab-link is-active" data-tab="dashboard">Overview</button>
+      <button class="tab-link" data-tab="recipes">Recipes</button>
+      <button class="tab-link" data-tab="planner">Planner</button>
+      <button class="tab-link" data-tab="grocery">Grocery List</button>
+      <button class="tab-link" data-tab="seasonality">Seasonality</button>
+      <button class="tab-link" data-tab="settings">Settings</button>
+    </nav>
+
+    <main>
+      <section class="tab-panel is-active" id="dashboard">
+        <div class="stats-grid" id="summaryCards"></div>
+        <div class="dashboard-grid">
+          <article class="card">
+            <div class="card-header">
+              <h2>Upcoming Meals</h2>
+              <p>The next few plan items at a glance.</p>
+            </div>
+            <div id="upcomingMeals" class="stack"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h2>Quick Start</h2>
+              <p>A simple order that keeps the app tidy from day one.</p>
+            </div>
+            <ol class="quick-steps">
+              <li>Set up your filter groups in Settings. Use things like Recipe Type, Season, and Effort.</li>
+              <li>Add a few aisle categories that match how you walk through your supermarket.</li>
+              <li>Create recipes with the right ingredients, default servings, and tags.</li>
+              <li>Fill the two-week planner with recipes or simple manual meals.</li>
+              <li>Review the grocery list and add any last manual items before shopping.</li>
+            </ol>
+          </article>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="recipes">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Recipe Library</p>
+            <h2>Save recipes with custom filters</h2>
+          </div>
+          <button class="secondary-btn" id="newRecipeBtn" type="button">New recipe</button>
+        </div>
+
+        <div class="workspace-grid">
+          <aside class="card">
+            <div class="card-header">
+              <h3>Find Recipes</h3>
+              <p>Filter by time, text, and any custom group you create.</p>
+            </div>
+
+            <form id="recipeFilterForm" class="stack">
+              <label class="field">
+                <span>Search</span>
+                <input type="search" name="query" placeholder="Soup, houmous, pasta salad...">
+              </label>
+              <label class="field">
+                <span>Max total minutes</span>
+                <input type="number" name="maxMinutes" min="0" step="5" placeholder="45">
+              </label>
+              <div id="recipeFilterGroups" class="stack"></div>
+              <button class="ghost-btn" type="button" id="clearRecipeFiltersBtn">Clear filters</button>
+            </form>
+
+            <div class="list-shell">
+              <div class="list-header">
+                <h3>Your recipes</h3>
+                <span id="recipeCount"></span>
+              </div>
+              <div id="recipeList" class="stack"></div>
+            </div>
+          </aside>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Recipe Details</h3>
+              <p>Choose default servings, classify recipes, and assign aisle categories ingredient by ingredient.</p>
+            </div>
+
+            <form id="recipeForm" class="stack">
+              <input type="hidden" name="id">
+              <div class="two-column">
+                <label class="field">
+                  <span>Recipe name</span>
+                  <input type="text" name="title" placeholder="Roasted tomato pasta" required>
+                </label>
+                <label class="field">
+                  <span>Default servings</span>
+                  <input type="number" name="baseServings" min="1" step="1" value="2" required>
+                </label>
+              </div>
+
+              <label class="field">
+                <span>Notes</span>
+                <textarea name="notes" rows="3" placeholder="Anything useful: texture, substitutions, serving ideas..."></textarea>
+              </label>
+
+              <div class="two-column">
+                <label class="field">
+                  <span>Prep minutes</span>
+                  <input type="number" name="prepMinutes" min="0" step="5" placeholder="10">
+                </label>
+                <label class="field">
+                  <span>Cook minutes</span>
+                  <input type="number" name="cookMinutes" min="0" step="5" placeholder="20">
+                </label>
+              </div>
+
+              <div class="taxonomy-block">
+                <div class="subheading">
+                  <h4>Filter groups</h4>
+                  <p>These come from Settings and make your recipes easy to search later.</p>
+                </div>
+                <div id="recipeTaxonomyFields" class="stack"></div>
+              </div>
+
+              <div class="subheading">
+                <h4>Ingredients</h4>
+                <p>These are the ingredients that will feed the grocery list when you plan this recipe.</p>
+              </div>
+
+              <div id="ingredientRows" class="stack"></div>
+              <button class="ghost-btn" type="button" id="addIngredientBtn">Add ingredient</button>
+
+              <div class="action-row">
+                <button class="primary-btn" type="submit">Save recipe</button>
+                <button class="secondary-btn" type="button" id="duplicateRecipeBtn">Duplicate</button>
+                <button class="danger-btn" type="button" id="deleteRecipeBtn">Delete</button>
+              </div>
+            </form>
+          </article>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="planner">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Two-Week Planner</p>
+            <h2>Mix saved recipes and simple manual meals</h2>
+          </div>
+          <button class="secondary-btn" id="newPlanItemBtn" type="button">Add meal</button>
+        </div>
+
+        <div class="planner-toolbar card">
+          <button class="ghost-btn" id="prevFortnightBtn" type="button">Previous 2 weeks</button>
+          <div id="plannerRange" class="range-label"></div>
+          <button class="ghost-btn" id="nextFortnightBtn" type="button">Next 2 weeks</button>
+        </div>
+
+        <div class="planner-layout">
+          <div id="plannerGrid" class="planner-grid"></div>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Meal Editor</h3>
+              <p>Add a saved recipe or a simple custom meal like bread and houmous.</p>
+            </div>
+
+            <form id="planItemForm" class="stack">
+              <input type="hidden" name="id">
+              <div class="two-column">
+                <label class="field">
+                  <span>Date</span>
+                  <input type="date" name="date" required>
+                </label>
+                <label class="field">
+                  <span>Meal slot</span>
+                  <select name="slot" required>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Snack">Snack</option>
+                  </select>
+                </label>
+              </div>
+
+              <label class="field">
+                <span>Source</span>
+                <select name="kind">
+                  <option value="recipe">Saved recipe</option>
+                  <option value="manual">Manual meal</option>
+                </select>
+              </label>
+
+              <div id="planRecipeFields" class="stack">
+                <label class="field">
+                  <span>Recipe</span>
+                  <select name="recipeId"></select>
+                </label>
+              </div>
+
+              <div id="planManualFields" class="stack is-hidden">
+                <label class="field">
+                  <span>Meal name</span>
+                  <input type="text" name="manualTitle" placeholder="Bread, houmous, cucumber">
+                </label>
+                <div class="subheading">
+                  <h4>Ingredients for this manual meal</h4>
+                  <p>These go straight into the grocery list.</p>
+                </div>
+                <div id="manualMealIngredientRows" class="stack"></div>
+                <button class="ghost-btn" type="button" id="addManualMealIngredientBtn">Add meal ingredient</button>
+              </div>
+
+              <label class="field">
+                <span>Servings</span>
+                <input type="number" name="servings" min="1" step="1" value="2" required>
+              </label>
+
+              <div class="action-row">
+                <button class="primary-btn" type="submit">Save meal</button>
+                <button class="danger-btn" type="button" id="deletePlanItemBtn">Delete</button>
+              </div>
+            </form>
+          </article>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="grocery">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Shopping Flow</p>
+            <h2>Generated from the plan, still editable by hand</h2>
+          </div>
+        </div>
+
+        <article class="card">
+          <div class="card-header">
+            <h3>Store View</h3>
+            <p>Keep one master list, then review everything or just one shop at a time.</p>
+          </div>
+          <label class="field">
+            <span>Show groceries for</span>
+            <select id="groceryStoreFilter"></select>
+          </label>
+        </article>
+
+        <div class="workspace-grid">
+          <article class="card">
+            <div class="card-header">
+              <h3>Manual Grocery Items</h3>
+              <p>Add anything extra and it will appear in the grouped shopping list.</p>
+            </div>
+
+            <form id="manualItemForm" class="stack">
+              <div class="two-column">
+                <label class="field">
+                  <span>Item</span>
+                  <input type="text" name="name" list="ingredientSuggestions" placeholder="Bread" required>
+                </label>
+                <label class="field">
+                  <span>Aisle</span>
+                  <select name="aisleId"></select>
+                </label>
+              </div>
+              <div class="two-column">
+                <label class="field">
+                  <span>Quantity</span>
+                  <input type="number" name="quantity" min="0" step="0.25" placeholder="1">
+                </label>
+                <label class="field">
+                  <span>Unit</span>
+                  <input type="text" name="unit" placeholder="loaf, pot, pack">
+                </label>
+              </div>
+              <button class="primary-btn" type="submit">Add manual item</button>
+            </form>
+
+            <div class="list-shell">
+              <div class="list-header">
+                <h3>Manual items in list</h3>
+              </div>
+              <div id="manualItemList" class="stack"></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Generated Grocery List</h3>
+              <p>Combined from planned recipes, manual meals, and hand-added items.</p>
+            </div>
+
+            <div id="groceryBoard" class="stack"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="settings">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Configuration</p>
+            <h2>Shape the app around your own way of cooking and shopping</h2>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <article class="card">
+            <div class="card-header">
+              <h3>Stores</h3>
+              <p>Create the shops you use, like your big supermarket and your organic one.</p>
+            </div>
+
+            <form id="storeForm" class="stack">
+              <label class="field">
+                <span>Store name</span>
+                <input type="text" name="name" placeholder="Organic supermarket" required>
+              </label>
+              <button class="primary-btn" type="submit">Add store</button>
+            </form>
+
+            <div id="storeManager" class="stack"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Recipe Filter Groups</h3>
+              <p>Create the categories you want to use as recipe filters.</p>
+            </div>
+
+            <form id="groupForm" class="stack">
+              <label class="field">
+                <span>Group name</span>
+                <input type="text" name="name" placeholder="Season" required>
+              </label>
+              <label class="field">
+                <span>Options</span>
+                <input type="text" name="options" placeholder="Spring, Summer, Autumn, Winter">
+              </label>
+              <button class="primary-btn" type="submit">Add filter group</button>
+            </form>
+
+            <div id="filterGroupManager" class="stack"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Grocery Aisles</h3>
+              <p>These aisle labels are used by ingredients, manual items, and the final shopping list.</p>
+            </div>
+
+            <form id="aisleForm" class="stack">
+              <label class="field">
+                <span>Store</span>
+                <select name="storeId"></select>
+              </label>
+              <label class="field">
+                <span>Aisle name</span>
+                <input type="text" name="name" placeholder="Produce" required>
+              </label>
+              <button class="primary-btn" type="submit">Add aisle</button>
+            </form>
+
+            <div id="aisleManager" class="stack"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Backup</h3>
+              <p>Keep your recipes and planning data safe or move it to another device.</p>
+            </div>
+
+            <div class="stack">
+              <button class="secondary-btn" id="exportDataBtn" type="button">Export data</button>
+              <label class="upload-field">
+                <span>Import data</span>
+                <input type="file" id="importDataInput" accept="application/json">
+              </label>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Cup To Gram Helper</h3>
+              <p>Use this when a recipe online is written in cups. Results are approximate and ingredient-specific.</p>
+            </div>
+
+            <form id="converterForm" class="stack">
+              <label class="field">
+                <span>Ingredient</span>
+                <select name="ingredient"></select>
+              </label>
+              <div class="two-column">
+                <label class="field">
+                  <span>Amount</span>
+                  <input type="number" name="amount" min="0" step="0.25" value="1">
+                </label>
+                <label class="field">
+                  <span>Unit</span>
+                  <select name="unit">
+                    <option value="cup">Cup</option>
+                    <option value="tbsp">Tablespoon</option>
+                    <option value="tsp">Teaspoon</option>
+                  </select>
+                </label>
+              </div>
+            </form>
+
+            <div id="converterResult" class="empty-state"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="seasonality">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Produce Ideas</p>
+            <h2>Browse fruits and vegetables by season</h2>
+          </div>
+        </div>
+
+        <article class="card">
+          <div class="two-column">
+            <label class="field">
+              <span>Month</span>
+              <select id="seasonalityMonth"></select>
+            </label>
+            <label class="field">
+              <span>Search</span>
+              <input type="search" id="seasonalitySearch" placeholder="Tomato, pear, pumpkin...">
+            </label>
+          </div>
+          <p class="list-item-meta">
+            Local lists are for Belgium without heated greenhouses. Exotic items are shown separately to give ideas, with a note that they are not local here.
+          </p>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h3>Add Your Own Produce Idea</h3>
+            <p>Add fruits or vegetables you want to remember and browse later.</p>
+          </div>
+
+          <form id="seasonalityForm" class="stack">
+            <div class="two-column">
+              <label class="field">
+                <span>Name</span>
+                <input type="text" name="name" placeholder="Nectarine" required>
+              </label>
+              <label class="field">
+                <span>Type</span>
+                <select name="category">
+                  <option value="fruit">Local fruit</option>
+                  <option value="vegetable">Local vegetable</option>
+                  <option value="exotic">Exotic / not local here</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="field">
+              <span>Months</span>
+              <div id="seasonalityMonthCheckboxes" class="option-grid"></div>
+            </div>
+
+            <label class="field">
+              <span>Note</span>
+              <input type="text" name="note" placeholder="storage possible, limited Belgian production, etc.">
+            </label>
+
+            <button class="primary-btn" type="submit">Add produce item</button>
+          </form>
+        </article>
+
+        <div class="seasonality-grid">
+          <article class="card">
+            <div class="card-header">
+              <h3>Local Fruits</h3>
+              <span id="seasonalityFruitCount"></span>
+            </div>
+            <div id="seasonalityFruitList" class="stack"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Local Vegetables</h3>
+              <span id="seasonalityVegetableCount"></span>
+            </div>
+            <div id="seasonalityVegetableList" class="stack"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Exotic / Not Local Here</h3>
+              <span id="seasonalityExoticCount"></span>
+            </div>
+            <div id="seasonalityExoticList" class="stack"></div>
+          </article>
+        </div>
+
+        <article class="card">
+          <div class="card-header">
+            <h3>Your Added Items</h3>
+            <span id="seasonalityCustomCount"></span>
+          </div>
+          <div id="seasonalityCustomList" class="stack"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <template id="ingredientRowTemplate">
+    <div class="ingredient-row">
+      <label class="field compact-field">
+        <span>Ingredient</span>
+        <input type="text" data-name="name" list="ingredientSuggestions" placeholder="Chickpeas">
+      </label>
+      <label class="field compact-field">
+        <span>Quantity</span>
+        <input type="number" data-name="quantity" min="0" step="0.25" placeholder="1">
+      </label>
+      <label class="field compact-field">
+        <span>Unit</span>
+        <input type="text" data-name="unit" placeholder="can">
+      </label>
+      <label class="field compact-field">
+        <span>Aisle</span>
+        <select data-name="aisleId"></select>
+      </label>
+      <button class="icon-btn danger-outline" type="button" data-action="remove-row">Remove</button>
+    </div>
+  </template>
+
+  <datalist id="ingredientSuggestions"></datalist>
+
+  <script src="app.js"></script>
+</body>
+</html>
